@@ -1,0 +1,16 @@
+# .gitignore (di project_akhir/server/)
+
+# Node.js specific
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+
+# Temporary files
+temp/
+
+# IDE and Editor files
+.vscode/
+*.swp

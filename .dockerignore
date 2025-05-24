@@ -1,0 +1,14 @@
+# Node.js specific
+node_modules/
+npm-debug.log
+.DS_Store
+
+# Environment variables
+.env
+
+# Temporary files (if any)
+temp/
+
+# Version control related files that are not needed in the image
+.git/
+.gitignore
