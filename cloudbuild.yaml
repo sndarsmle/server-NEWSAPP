@@ -1,42 +1,28 @@
-# cloudbuild.yaml (akan ditempatkan di project_akhir/server/)
+# cloudbuild.yaml (di project_akhir/server/)
 
 steps:
   # Step 1: Build the Docker image
-  # Menggunakan builder Docker resmi dari Google Cloud Build.
-  # '-t' digunakan untuk memberikan tag pada image Docker.
-  # Path lengkap image akan menjadi: us-central1-docker.pkg.dev/YOUR_PROJECT_ID/ta-newsapp-be/newsapp-backend:COMMIT_SHA
-  # '.' di akhir perintah 'build' menunjukkan bahwa Dockerfile berada di direktori saat ini (yaitu folder 'server').
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', '${_AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/newsapp-backend:${COMMIT_SHA}', '.']
 
   # Step 2: Push the Docker image to Google Artifact Registry
-  # Mendorong image Docker yang baru saja dibangun ke Artifact Registry.
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', '${_AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/newsapp-backend:${COMMIT_SHA}']
 
   # Step 3: Deploy the image to Google Cloud Run
-  # Menggunakan gcloud CLI untuk men-deploy layanan ke Cloud Run.
-  # 'newsapp-backend-service' adalah nama layanan Cloud Run Anda. Anda bisa menggantinya jika mau.
-  # '--image' menunjuk ke image Docker yang telah di-push di langkah sebelumnya.
-  # '--region' menentukan wilayah di mana layanan Cloud Run akan berjalan.
-  # '--allow-unauthenticated' mengizinkan akses publik ke API Anda. Hapus baris ini jika Anda ingin API bersifat pribadi.
-  # '--set-env-vars' adalah bagian penting untuk memasok variabel lingkungan dari Secret Manager.
-  #   Setiap variabel (misal: DB_USERNAME) akan diambil dari Secret Manager dengan format:
-  #   projects/YOUR_PROJECT_NUMBER/secrets/SECRET_NAME:latest
-  #   Pastikan semua secret ini sudah Anda buat di Google Secret Manager!
   - name: 'gcr.io/google.com/cloudsdk/cloud-sdk'
     entrypoint: gcloud
     args:
       - 'run'
       - 'deploy'
-      - 'newsapp-backend-service' # Nama layanan Cloud Run Anda (misal: "my-news-api" atau "news-backend")
+      - 'newsapp-backend-service'
       - '--image'
       - '${_AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/newsapp-backend:${COMMIT_SHA}'
       - '--region'
       - '${_GCP_REGION}'
       - '--platform'
       - 'managed'
-      - '--allow-unauthenticated' # Hapus baris ini jika Anda ingin layanan bersifat pribadi/membutuhkan autentikasi
+      - '--allow-unauthenticated'
       - '--set-env-vars'
       - |
         DB_USERNAME=projects/${PROJECT_NUMBER}/secrets/DB_USERNAME:latest,\
@@ -47,11 +33,15 @@ steps:
         REFRESH_SECRET_KEY=projects/${PROJECT_NUMBER}/secrets/REFRESH_SECRET_KEY:latest,\
         GCS_BUCKET_NAME=projects/${PROJECT_NUMBER}/secrets/GCS_BUCKET_NAME:latest,\
         DEFAULT_PROFILE_PICTURE_URL=projects/${PROJECT_NUMBER}/secrets/DEFAULT_PROFILE_PICTURE_URL:latest
-      # GOOGLE_APPLICATION_CREDENTIALS tidak perlu diatur, Cloud Run akan otomatis menggunakan Service Account yang terpasang.
 
 # Definisi Variabel Substitusi
-# Nilai-nilai ini akan Anda masukkan saat membuat Cloud Build Trigger di konsol GCP, BUKAN di sini.
 substitutions:
-  _AR_LOCATION: us-central1    # Lokasi Artifact Registry Anda (misal: us-central1, asia-southeast2)
-  _AR_REPO_NAME: ta-newsapp-be # Nama repository Artifact Registry Anda (misal: ta-newsapp-be, news-app-images)
-  _GCP_REGION: us-central1     # Wilayah deployment Cloud Run Anda (harus sama dengan _AR_LOCATION untuk efisiensi)
+  _AR_LOCATION: us-central1
+  _AR_REPO_NAME: ta-newsapp-be
+  _GCP_REGION: us-central1
+
+# Tambahkan bagian ini untuk mengelola log build
+options:
+  # Menggunakan Cloud Logging saja, tanpa perlu GCS bucket terpisah.
+  # Ini adalah opsi paling sederhana dan sering direkomendasikan.
+  logging: CLOUD_LOGGING_ONLY
