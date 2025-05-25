@@ -1,47 +1,58 @@
-# cloudbuild.yaml (di project_akhir/server/)
+# cloudbuild.yaml (akan ditempatkan di project_akhir/server/)
 
 steps:
-  # Step 1: Build the Docker image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', '${_AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/newsapp-backend:${COMMIT_SHA}', '.']
+  # Step 0: Download .env from a private Google Cloud Storage bucket
+  # This makes your environment variables available during build and runtime.
+  # Pastikan Anda sudah membuat bucket 'my-newsapp-env-files' di GCS
+  # dan file .env Anda sudah diupload ke dalamnya.
+  - name: "gcr.io/cloud-builders/gsutil"
+    args: ["cp", "gs://my-newsapp-env-files/.env", ".env"] # NAMA BUCKET DISINI
 
-  # Step 2: Push the Docker image to Google Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '${_AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/newsapp-backend:${COMMIT_SHA}']
+  # Step 1: Build the Docker image for the backend application
+  # Using gcr.io (Google Container Registry) for image storage.
+  # 'newsapp-backend' adalah nama image Docker Anda.
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--cache-from",
+        "gcr.io/${PROJECT_ID}/newsapp-backend", # NAMA IMAGE DISINI
+        "-t",
+        "gcr.io/${PROJECT_ID}/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
+        ".",
+      ]
+
+  # Step 2: Push the Docker image to Google Container Registry (GCR)
+  # 'newsapp-backend' adalah nama image Docker Anda.
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/${PROJECT_ID}/newsapp-backend:${SHORT_SHA}"] # NAMA IMAGE DISINI
 
   # Step 3: Deploy the image to Google Cloud Run
-  - name: 'gcr.io/google.com/cloudsdk/cloud-sdk'
+  # Your application will load environment variables from the .env file copied in Step 0.
+  # 'newsapp-backend-service' adalah nama layanan Cloud Run Anda.
+  - name: "gcr.io/google.com/cloudsdk/cloud-sdk"
     entrypoint: gcloud
-    args:
-      - 'run'
-      - 'deploy'
-      - 'newsapp-backend-service'
-      - '--image'
-      - '${_AR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/newsapp-backend:${COMMIT_SHA}'
-      - '--region'
-      - '${_GCP_REGION}'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
-      - '--set-env-vars'
-      - |
-        DB_USERNAME=projects/${PROJECT_NUMBER}/secrets/DB_USERNAME:latest,\
-        DB_PASSWORD=projects/${PROJECT_NUMBER}/secrets/DB_PASSWORD:latest,\
-        DB_HOST=projects/${PROJECT_NUMBER}/secrets/DB_HOST:latest,\
-        DB_NAME=projects/${PROJECT_NUMBER}/secrets/DB_NAME:latest,\
-        ACCESS_SECRET_KEY=projects/${PROJECT_NUMBER}/secrets/ACCESS_SECRET_KEY:latest,\
-        REFRESH_SECRET_KEY=projects/${PROJECT_NUMBER}/secrets/REFRESH_SECRET_KEY:latest,\
-        GCS_BUCKET_NAME=projects/${PROJECT_NUMBER}/secrets/GCS_BUCKET_NAME:latest,\
-        DEFAULT_PROFILE_PICTURE_URL=projects/${PROJECT_NUMBER}/secrets/DEFAULT_PROFILE_PICTURE_URL:latest
+    args: [
+        "run",
+        "deploy",
+        "newsapp-backend-service", # NAMA LAYANAN CLOUD RUN DISINI
+        "--image",
+        "gcr.io/${PROJECT_ID}/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
+        "--timeout",
+        "1000s",
+        "--port",
+        "3000", # Pastikan ini sesuai dengan port yang aplikasi Anda dengarkan
+        "--region",
+        "us-central1", # Wilayah deployment Cloud Run Anda
+        "--allow-unauthenticated", # Hapus ini jika Anda ingin layanan bersifat pribadi/membutuhkan autentikasi
+      ]
 
-# Definisi Variabel Substitusi
-substitutions:
-  _AR_LOCATION: us-central1
-  _AR_REPO_NAME: ta-newsapp-be
-  _GCP_REGION: us-central1
-
-# Tambahkan bagian ini untuk mengelola log build
+# Log will only be stored in Google Cloud Logging (required for custom service accounts)
 options:
-  # Menggunakan Cloud Logging saja, tanpa perlu GCS bucket terpisah.
-  # Ini adalah opsi paling sederhana dan sering direkomendasikan.
   logging: CLOUD_LOGGING_ONLY
+
+# Tidak diperlukan variabel substitusi karena .env diunduh dari GCS.
+# substitutions:
+#   _AR_LOCATION: us-central1
+#   _AR_REPO_NAME: ta-newsapp-be
+#   _GCP_REGION: us-central1

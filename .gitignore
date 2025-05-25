@@ -1,5 +1,3 @@
-# .gitignore (di project_akhir/server/)
-
 # Node.js specific
 node_modules/
 npm-debug.log
