@@ -1,35 +1,76 @@
-# cloudbuild.yaml (akan ditempatkan di project_akhir/server/)
+# # cloudbuild.yaml (akan ditempatkan di project_akhir/server/)
+
+# steps:
+#   # Step 0: Download .env from a private Google Cloud Storage bucket
+#   # This makes your environment variables available during build and runtime.
+#   # Pastikan Anda sudah membuat bucket 'my-newsapp-env-files' di GCS
+#   # dan file .env Anda sudah diupload ke dalamnya.
+#   - name: "gcr.io/cloud-builders/gsutil"
+#     args: ["cp", "gs://newsapp-backend/.env", ".env"] # NAMA BUCKET DISINI
+
+#   # Step 1: Build the Docker image for the backend application
+#   # Using gcr.io (Google Container Registry) for image storage.
+#   # 'newsapp-backend' adalah nama image Docker Anda.
+#   - name: "gcr.io/cloud-builders/docker"
+#     args:
+#       [
+#         "build",
+#         "--cache-from",
+#         "gcr.io/$PROJECT_ID/newsapp-backend", # NAMA IMAGE DISINI
+#         "-t",
+#         "gcr.io/$PROJECT_ID/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
+#         ".",
+#       ]
+
+#   # Step 2: Push the Docker image to Google Container Registry (GCR)
+#   # 'newsapp-backend' adalah nama image Docker Anda.
+#   - name: "gcr.io/cloud-builders/docker"
+#     args: ["push", "gcr.io/$PROJECT_ID/newsapp-backend:${SHORT_SHA}"] # NAMA IMAGE DISINI
+
+#   # Step 3: Deploy the image to Google Cloud Run
+#   # Your application will load environment variables from the .env file copied in Step 0.
+#   # 'newsapp-backend-service' adalah nama layanan Cloud Run Anda.
+#   - name: "gcr.io/cloud-builders/gcloud"
+#     entrypoint: gcloud
+#     args: [
+#         "run",
+#         "deploy",
+#         "newsapp-backend", # NAMA LAYANAN CLOUD RUN DISINI
+#         "--image",
+#         "gcr.io/$PROJECT_ID/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
+#         "--timeout",
+#         "1000s",
+#         "--port",
+#         "5000", # Pastikan ini sesuai dengan port yang aplikasi Anda dengarkan
+#         "--region",
+#         "us-central1", # Wilayah deployment Cloud Run Anda
+#         "--allow-unauthenticated", # Hapus ini jika Anda ingin layanan bersifat pribadi/membutuhkan autentikasi
+#       ]
+
+# # Log will only be stored in Google Cloud Logging (required for custom service accounts)
+# options:
+#   logging: CLOUD_LOGGING_ONLY
+
+# # Tidak diperlukan variabel substitusi karena .env diunduh dari GCS.
+# # substitutions:
+# #   _AR_LOCATION: us-central1
+# #   _AR_REPO_NAME: ta-newsapp-be
+# #   _GCP_REGION: us-central1
 
 steps:
-  # Step 0: Download .env from a private Google Cloud Storage bucket
-  # This makes your environment variables available during build and runtime.
-  # Pastikan Anda sudah membuat bucket 'my-newsapp-env-files' di GCS
-  # dan file .env Anda sudah diupload ke dalamnya.
-  - name: "gcr.io/cloud-builders/gsutil"
-    args: ["cp", "gs://newsapp-backend/.env", ".env"] # NAMA BUCKET DISINI
-
-  # Step 1: Build the Docker image for the backend application
-  # Using gcr.io (Google Container Registry) for image storage.
-  # 'newsapp-backend' adalah nama image Docker Anda.
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "--cache-from",
-        "gcr.io/$PROJECT_ID/newsapp-backend", # NAMA IMAGE DISINI
         "-t",
-        "gcr.io/$PROJECT_ID/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
+        "gcr.io/$PROJECT_ID/newsapp-backend",
         ".",
       ]
+    dir: "."
 
-  # Step 2: Push the Docker image to Google Container Registry (GCR)
-  # 'newsapp-backend' adalah nama image Docker Anda.
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/newsapp-backend:${SHORT_SHA}"] # NAMA IMAGE DISINI
+    args: ["push", "gcr.io/$PROJECT_ID/newsapp-backend"]
 
-  # Step 3: Deploy the image to Google Cloud Run
-  # Your application will load environment variables from the .env file copied in Step 0.
-  # 'newsapp-backend-service' adalah nama layanan Cloud Run Anda.
   - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: gcloud
     args: [
@@ -37,7 +78,7 @@ steps:
         "deploy",
         "newsapp-backend", # NAMA LAYANAN CLOUD RUN DISINI
         "--image",
-        "gcr.io/$PROJECT_ID/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
+        "gcr.io/$PROJECT_ID/newsapp-backend",
         "--timeout",
         "1000s",
         "--port",
@@ -45,14 +86,9 @@ steps:
         "--region",
         "us-central1", # Wilayah deployment Cloud Run Anda
         "--allow-unauthenticated", # Hapus ini jika Anda ingin layanan bersifat pribadi/membutuhkan autentikasi
+        "--set-env-vars",
+        "ACCESS_SECRET_KEY=${_ACCESS_SECRET_KEY},REFRESH_SECRET_KEY=${_REFRESH_SECRET_KEY},DB_NAME=${_DB_NAME},DB_USERNAME=${_DB_USERNAME},DB_PASSWORD=${_DB_PASSWORD},DB_HOST=${_DB_HOST},DEFAULT_PROFILE_PICTURE_URL={_DEFAULT_PROFILE_PICTURE_URL},GCS_BUCKET_NAME={_GCS_BUCKET_NAME}"
       ]
 
-# Log will only be stored in Google Cloud Logging (required for custom service accounts)
 options:
   logging: CLOUD_LOGGING_ONLY
-
-# Tidak diperlukan variabel substitusi karena .env diunduh dari GCS.
-# substitutions:
-#   _AR_LOCATION: us-central1
-#   _AR_REPO_NAME: ta-newsapp-be
-#   _GCP_REGION: us-central1
