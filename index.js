@@ -1,6 +1,20 @@
 // index.js
 import dotenv from "dotenv";
-dotenv.config(); // Memuat variabel lingkungan dari file .env di awal
+dotenv.config(); // Memuat variabel lingkungan dari file .env di awal (untuk pengembangan lokal)
+
+// --- DEBUGGING: TAMBAHKAN LOG INI DI AWAL (HAPUS SETELAH BERHASIL DEPLOY) ---
+console.log('--- Aplikasi Node.js Memulai di Cloud Run ---');
+console.log('DEBUG_ENV: process.env.PORT:', process.env.PORT);
+console.log('DEBUG_ENV: process.env.CLIENT_URL:', process.env.CLIENT_URL);
+console.log('DEBUG_ENV: process.env.DB_USERNAME:', process.env.DB_USERNAME);
+console.log('DEBUG_ENV: process.env.DB_HOST:', process.env.DB_HOST);
+console.log('DEBUG_ENV: process.env.DB_NAME:', process.env.DB_NAME);
+console.log('DEBUG_ENV: process.env.GCS_BUCKET_NAME:', process.env.GCS_BUCKET_NAME);
+// HATI-HATI: JANGAN LOG PASSWORD DI LINGKUNGAN PRODUKSI!
+// console.log('DEBUG_ENV: process.env.DB_PASSWORD:', process.env.DB_PASSWORD);
+console.log('--- Debugging Variabel Lingkungan Selesai ---');
+// --- AKHIR DEBUGGING LOGS ---
+
 
 import express from "express";
 import cors from "cors";
