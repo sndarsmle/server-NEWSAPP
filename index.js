@@ -18,7 +18,7 @@ import categoryRouter from "./routes/categoryRoute.js";
 import association from "./utils/dbAssoc.js"; // Untuk sinkronisasi database
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 // Dapatkan __dirname yang setara di ES modules (tetap diperlukan jika Anda menyajikan index.html)
 const __filename = fileURLToPath(import.meta.url);

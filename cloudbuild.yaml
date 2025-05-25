@@ -40,8 +40,8 @@ steps:
         "gcr.io/$PROJECT_ID/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
         "--timeout",
         "1000s",
-        "--port",
-        "5000", # Pastikan ini sesuai dengan port yang aplikasi Anda dengarkan
+        # "--port",
+        # "5000", # Pastikan ini sesuai dengan port yang aplikasi Anda dengarkan
         "--region",
         "us-central1", # Wilayah deployment Cloud Run Anda
         "--allow-unauthenticated", # Hapus ini jika Anda ingin layanan bersifat pribadi/membutuhkan autentikasi

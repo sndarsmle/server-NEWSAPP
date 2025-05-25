@@ -4,5 +4,5 @@ COPY package*.json ./
 RUN npm install --omit=dev
 COPY . .
 RUN mkdir -p temp
-EXPOSE 5000
+EXPOSE 3000
 CMD ["node", "index.js"]
