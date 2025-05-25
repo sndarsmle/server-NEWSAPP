@@ -44,7 +44,7 @@ const corsOptions = {
         "http://localhost:3000", // Contoh port frontend React/Vue
         "http://localhost:5500", // Contoh port Live Server
         "http://localhost:5000", // Jika backend dan frontend di port yang sama untuk dev
-        process.env.CLIENT_URL, // URL frontend dari .env
+        "https://projek-akhir-fe-dot-a-08-450504.uc.r.appspot.com"
     ].filter(Boolean), // Menghapus nilai undefined/null
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
