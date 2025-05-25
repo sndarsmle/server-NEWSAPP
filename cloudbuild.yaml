@@ -6,7 +6,7 @@ steps:
   # Pastikan Anda sudah membuat bucket 'my-newsapp-env-files' di GCS
   # dan file .env Anda sudah diupload ke dalamnya.
   - name: "gcr.io/cloud-builders/gsutil"
-    args: ["cp", "gs://my-newsapp-env-files/.env", ".env"] # NAMA BUCKET DISINI
+    args: ["cp", "gs:///newsapp-backend/.env", ".env"] # NAMA BUCKET DISINI
 
   # Step 1: Build the Docker image for the backend application
   # Using gcr.io (Google Container Registry) for image storage.
@@ -16,32 +16,32 @@ steps:
       [
         "build",
         "--cache-from",
-        "gcr.io/${PROJECT_ID}/newsapp-backend", # NAMA IMAGE DISINI
+        "gcr.io/$PROJECT_ID/newsapp-backend", # NAMA IMAGE DISINI
         "-t",
-        "gcr.io/${PROJECT_ID}/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
+        "gcr.io/$PROJECT_ID/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
         ".",
       ]
 
   # Step 2: Push the Docker image to Google Container Registry (GCR)
   # 'newsapp-backend' adalah nama image Docker Anda.
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/${PROJECT_ID}/newsapp-backend:${SHORT_SHA}"] # NAMA IMAGE DISINI
+    args: ["push", "gcr.io/$PROJECT_ID/newsapp-backend:${SHORT_SHA}"] # NAMA IMAGE DISINI
 
   # Step 3: Deploy the image to Google Cloud Run
   # Your application will load environment variables from the .env file copied in Step 0.
   # 'newsapp-backend-service' adalah nama layanan Cloud Run Anda.
-  - name: "gcr.io/google.com/cloudsdk/cloud-sdk"
+  - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: gcloud
     args: [
         "run",
         "deploy",
-        "newsapp-backend-service", # NAMA LAYANAN CLOUD RUN DISINI
+        "newsapp-backend", # NAMA LAYANAN CLOUD RUN DISINI
         "--image",
-        "gcr.io/${PROJECT_ID}/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
+        "gcr.io/$PROJECT_ID/newsapp-backend:${SHORT_SHA}", # NAMA IMAGE DISINI
         "--timeout",
         "1000s",
         "--port",
-        "3000", # Pastikan ini sesuai dengan port yang aplikasi Anda dengarkan
+        "5000", # Pastikan ini sesuai dengan port yang aplikasi Anda dengarkan
         "--region",
         "us-central1", # Wilayah deployment Cloud Run Anda
         "--allow-unauthenticated", # Hapus ini jika Anda ingin layanan bersifat pribadi/membutuhkan autentikasi
