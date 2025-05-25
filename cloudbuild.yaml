@@ -86,8 +86,8 @@ steps:
         "--region",
         "us-central1", # Wilayah deployment Cloud Run Anda
         "--allow-unauthenticated", # Hapus ini jika Anda ingin layanan bersifat pribadi/membutuhkan autentikasi
-        "--set-env-vars",
-        "ACCESS_SECRET_KEY=${_ACCESS_SECRET_KEY},REFRESH_SECRET_KEY=${_REFRESH_SECRET_KEY},DB_NAME=${_DB_NAME},DB_USERNAME=${_DB_USERNAME},DB_PASSWORD=${_DB_PASSWORD},DB_HOST=${_DB_HOST},DEFAULT_PROFILE_PICTURE_URL={_DEFAULT_PROFILE_PICTURE_URL},GCS_BUCKET_NAME={_GCS_BUCKET_NAME}"
+        "--set-secret",
+        "ACCESS_SECRET_KEY=ACCESS_SECRET_KEY:latest,REFRESH_SECRET_KEY=REFRESH_SECRET_KEY:latest,DB_USERNAME=DB_USERNAME:latest,DB_PASSWORD=DB_PASSWORD:latest,DB_HOST=DB_HOST:latest,DB_NAME=DB_NAME:latest,DEFAULT_PROFILE_PICTURE_URL=DEFAULT_PROFILE_PICTURE_URL:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest"
       ]
 
 options:

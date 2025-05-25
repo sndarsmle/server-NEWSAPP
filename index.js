@@ -1,12 +1,12 @@
 // index.js
 import dotenv from "dotenv";
-dotenv.config(); // Memuat variabel lingkungan dari file .env
+dotenv.config(); // Memuat variabel lingkungan dari file .env di awal
 
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import path from "path"; // Tetap diperlukan jika Anda menyajikan index.html
-import { fileURLToPath } from "url"; // Tetap diperlukan jika Anda menyajikan index.html
+import path from "path"; // Diperlukan untuk menyajikan file statis seperti index.html
+import { fileURLToPath } from "url"; // Diperlukan untuk mendapatkan __dirname di ES modules
 
 // Import Routers
 import userRouter from "./routes/userRoute.js";
@@ -14,13 +14,13 @@ import articleRouter from "./routes/articleRoute.js";
 import commentRouter from "./routes/commentRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 
-// Import Utilities
-import association from "./utils/dbAssoc.js"; // Untuk sinkronisasi database
+// Import Utility untuk Asosiasi Database
+import association from "./utils/dbAssoc.js"; // Untuk sinkronisasi dan asosiasi database
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Dapatkan __dirname yang setara di ES modules (tetap diperlukan jika Anda menyajikan index.html)
+// Dapatkan __dirname yang setara di ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -37,27 +37,34 @@ const corsOptions = {
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 };
 
-// Middleware
-app.use(cors(corsOptions)); // Terapkan CORS
-app.options("*", cors(corsOptions)); // Tangani preflight requests (OPTIONS)
+// --- Middleware Global ---
+// Terapkan CORS untuk semua request
+app.use(cors(corsOptions));
+// Tangani preflight requests (OPTIONS) untuk CORS
+app.options("*", cors(corsOptions));
 
-app.use(express.json()); // Mengurai request body dalam format JSON
-app.use(express.urlencoded({ extended: true })); // Mengurai request body dalam format URL-encoded (penting untuk form data non-file)
-app.use(cookieParser()); // Mengurai cookie dari request header
+// Mengurai request body dalam format JSON
+app.use(express.json());
+// Mengurai request body dalam format URL-encoded (penting untuk form data non-file)
+app.use(express.urlencoded({ extended: true }));
+// Mengurai cookie dari request header
+app.use(cookieParser());
 
-// Default route (opsional, bisa dihapus jika backend murni API)
-// Ini bisa jadi halaman HTML sederhana untuk mengecek server berjalan
+// --- Routes Aplikasi ---
+// Default route: Menyajikan file HTML sederhana untuk mengecek server berjalan
+// Fungsionalitas ini dipertahankan sesuai permintaan Anda
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Memasang Routers ke path API
+// Memasang Routers ke path API yang spesifik
 app.use("/api/user", userRouter);
 app.use("/api/articles", articleRouter);
 app.use("/api/comments", commentRouter);
 app.use("/api/categories", categoryRouter);
 
-// Middleware Penanganan Error Global
+// --- Penanganan Error ---
+// Middleware Penanganan Error Global (harus diletakkan setelah semua router)
 // Penting untuk menangkap error yang tidak tertangani dan mencegah server crash
 app.use((err, req, res, next) => {
     console.error(err.stack); // Log stack trace error untuk debugging
@@ -67,7 +74,7 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Handler 404 Not Found
+// Handler 404 Not Found (harus diletakkan paling akhir)
 // Penting untuk memberikan respons yang jelas jika endpoint tidak ditemukan
 app.use((req, res) => {
     res.status(404).json({
@@ -76,6 +83,7 @@ app.use((req, res) => {
     });
 });
 
+// --- Inisialisasi Server ---
 // Memulai Server Setelah Sinkronisasi Asosiasi Database
 // Ini SANGAT PENTING agar database siap sebelum server menerima request
 association()
