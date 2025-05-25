@@ -6,7 +6,7 @@ steps:
   # Pastikan Anda sudah membuat bucket 'my-newsapp-env-files' di GCS
   # dan file .env Anda sudah diupload ke dalamnya.
   - name: "gcr.io/cloud-builders/gsutil"
-    args: ["cp", "gs:///newsapp-backend/.env", ".env"] # NAMA BUCKET DISINI
+    args: ["cp", "gs://newsapp-backend/.env", ".env"] # NAMA BUCKET DISINI
 
   # Step 1: Build the Docker image for the backend application
   # Using gcr.io (Google Container Registry) for image storage.
